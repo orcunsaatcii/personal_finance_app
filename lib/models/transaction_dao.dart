@@ -35,4 +35,13 @@ class TransactionsDao {
 
     await db.insert('transactions', data);
   }
+
+  Future<void> insertTransactionWithQuery(query) async {
+    final db = await DatabaseHelper.initDb();
+    try {
+      await db.rawInsert(query);
+    } catch (e) {
+      print('Error inserting transaction: $e');
+    }
+  }
 }

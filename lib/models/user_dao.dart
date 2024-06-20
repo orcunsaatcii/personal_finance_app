@@ -32,7 +32,7 @@ class UsersDao {
     }
   }
 
-  Future<void> insertUserQuery(query) async {
+  Future<void> insertUserWithQuery(query) async {
     final db = await DatabaseHelper.initDb();
     try {
       await db.rawInsert(query);
