@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:personal_finance_app/constants/constants.dart';
 import 'package:personal_finance_app/models/category.dart';
 import 'package:personal_finance_app/models/category_dao.dart';
+import 'package:personal_finance_app/models/user_dao.dart';
 import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,8 +27,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> addCategory() async {
-    List<Map<String, dynamic>> categories = [
+  /* Future<void> addtransaction() async {
+    List<Map<String, dynamic>> transactions = [
       {'Salary': 'income'},
       {'Bonus': 'income'},
       {'Rental income': 'income'},
@@ -61,12 +62,30 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
+  }*/
+
+  Future<void> addUsers() async {
+    List<String> queries = [
+      "INSERT INTO users (name, email, password) VALUES ('Alice', 'alice@example.com', 'password123')",
+      "INSERT INTO users (name, email, password) VALUES ('Bob', 'bob@example.com', 'password456')",
+      "INSERT INTO users (name, email, password) VALUES ('Charlie', 'charlie@example.com', 'password789')"
+    ];
+
+    for (var query in queries) {
+      try {
+        await UsersDao().insertUserQuery(query);
+        print('Users added');
+      } catch (e) {
+        print('EROOOOOOOOOOOORR');
+      }
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    addCategory();
+    //addCategory();
+    addUsers();
   }
 
   @override

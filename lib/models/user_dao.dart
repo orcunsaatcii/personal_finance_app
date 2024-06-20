@@ -32,6 +32,20 @@ class UsersDao {
     }
   }
 
+  Future<void> insertUserQuery(query) async {
+    final db = await DatabaseHelper.initDb();
+    try {
+      await db.rawInsert(query);
+    } catch (e) {
+      print('Error inserting user: $e');
+    }
+  }
+
+  Future<void> deleteUser(int userId) async {
+    final db = await DatabaseHelper.initDb();
+    await db.rawDelete('DELETE from users WHERE user_id =$userId');
+  }
+
   Future<bool> userExists(String email, String password) async {
     final db = await DatabaseHelper.initDb();
 
