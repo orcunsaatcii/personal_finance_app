@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:personal_finance_app/constants/constants.dart';
+import 'package:personal_finance_app/models/category.dart';
+import 'package:personal_finance_app/models/category_dao.dart';
 import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +24,49 @@ class _HomePageState extends State<HomePage> {
             builder: (context) => const LoginPage(),
           ));
     }
+  }
+
+  Future<void> addCategory() async {
+    List<Map<String, dynamic>> categories = [
+      {'Salary': 'income'},
+      {'Bonus': 'income'},
+      {'Rental income': 'income'},
+      {'Scholarship': 'income'},
+      {'Investment': 'income'},
+      {'Tax refund': 'income'},
+      {'Freelance': 'income'},
+      {'Food': 'expense'},
+      {'Rent': 'expense'},
+      {'Entertainment': 'expense'},
+      {'Utilities': 'expense'},
+      {'Transportation': 'expense'},
+      {'Education': 'expense'},
+      {'Groceries': 'expense'},
+      {'Clothing': 'expense'},
+      {'Travel': 'expense'},
+      {'Charity': 'expense'},
+      {'Subscription': 'expense'},
+      {'Household items': 'expense'},
+      {'Personal care': 'expense'},
+      {'Healthcore': 'expense'},
+    ];
+
+    for (var category in categories) {
+      for (var i in category.entries) {
+        try {
+          await CategoryDao().insertCategory(i.key.toString(), i.value);
+          print('Categories added');
+        } catch (e) {
+          print('EROOOOOOOOOOOORR');
+        }
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    addCategory();
   }
 
   @override
