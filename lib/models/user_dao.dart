@@ -32,6 +32,20 @@ class UsersDao {
     }
   }
 
+  Future<void> insertUserWithQuery(query) async {
+    final db = await DatabaseHelper.initDb();
+    try {
+      await db.rawInsert(query);
+    } catch (e) {
+      print('Error inserting user: $e');
+    }
+  }
+
+  Future<void> deleteUser(int userId) async {
+    final db = await DatabaseHelper.initDb();
+    await db.rawDelete('DELETE from users WHERE user_id =$userId');
+  }
+
   Future<bool> userExists(String email, String password) async {
     final db = await DatabaseHelper.initDb();
 
@@ -45,5 +59,26 @@ class UsersDao {
     } else {
       return true;
     }
+  }
+
+  Future<Map<String, dynamic>> getLoggedInUser(
+      String email, String password) async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> user = await db.rawQuery(
+        'SELECT * FROM users WHERE email = ? and password = ?',
+        [email, password]);
+
+    return user[0];
+  }
+
+  Future<Map<String, dynamic>> searchUser(String email, String password) async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> user = await db.rawQuery(
+        'SELECT * from users WHERE email = ? and password = ?',
+        [email, password]);
+
+    return user[0];
   }
 }

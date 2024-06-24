@@ -1,27 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_finance_app/constants/constants.dart';
+import 'package:personal_finance_app/models/category_dao.dart';
+import 'package:personal_finance_app/models/transaction_dao.dart';
+import 'package:personal_finance_app/models/transactions.dart';
+import 'package:personal_finance_app/models/user_dao.dart';
 import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
+import 'package:personal_finance_app/pages/home/widgets/transaction_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   Future<void> logout() async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.remove('email');
     if (mounted) {
+      final sp = await SharedPreferences.getInstance();
+      sp.remove('email');
+      sp.remove('password');
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => const LoginPage(),
           ));
     }
+  }
+
+  Future<List<Transactions>> showTransactions() async {
+    final sp = await SharedPreferences.getInstance();
+    final user = await UsersDao()
+        .searchUser(sp.getString('email')!, sp.getString('password')!);
+
+    return await TransactionsDao().allTransactions(user['user_id']);
+  }
+
+  Future<List<Transactions>> showUsersExpenses() async {
+    final sp = await SharedPreferences.getInstance();
+
+    final user = await UsersDao()
+        .getLoggedInUser(sp.getString('email')!, sp.getString('password')!);
+    return await TransactionsDao().usersExpneses(user['user_id']);
+  }
+
+  Future<List<Transactions>> showUsersIncomes() async {
+    final sp = await SharedPreferences.getInstance();
+
+    final user = await UsersDao()
+        .getLoggedInUser(sp.getString('email')!, sp.getString('password')!);
+    return await TransactionsDao().usersIncomes(user['user_id']);
+  }
+
+  Future<double> showSavingRate() async {
+    final sp = await SharedPreferences.getInstance();
+    final user = await UsersDao()
+        .searchUser(sp.getString('email')!, sp.getString('password')!);
+
+    final expenses = await TransactionsDao().usersExpneses(user['user_id']);
+    final incomes = await TransactionsDao().usersIncomes(user['user_id']);
+
+    double totalIncome = 0;
+    double totalExpnese = 0;
+
+    for (var expense in expenses) {
+      totalExpnese += expense.amount;
+    }
+    for (var income in incomes) {
+      totalIncome += income.amount;
+    }
+
+    return totalIncome - totalExpnese;
   }
 
   @override
@@ -54,12 +105,26 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Hello Orçun!',
-                          style:
-                              Theme.of(context).textTheme.titleLarge!.copyWith(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Hello ${'o' 'name'}asd!',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge!
+                                  .copyWith(
                                     color: Colors.white,
                                   ),
+                            ),
+                            IconButton(
+                              onPressed: logout,
+                              icon: const Icon(
+                                Icons.logout,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                         Text(
                           'Welcome back',
@@ -73,13 +138,69 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.08, vertical: 80.0),
-                child: const Column(
-                  children: [
-                    Text('Income | Expense Buttons...'),
-                  ],
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.08, vertical: 40.0),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: FutureBuilder<List<Transactions>>(
+                          future: showTransactions(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Container();
+                            } else if (snapshot.hasError) {
+                              return const Center(
+                                  child: Text('Error loading transactions'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const Center(
+                                  child: Text('No transactions found'));
+                            } else {
+                              return ListView.builder(
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (context, index) {
+                                  final transaction = snapshot.data![index];
+
+                                  return FutureBuilder<bool>(
+                                    future: CategoryDao().isExpenseOrIncome(
+                                        transaction.categoryId),
+                                    builder: (context,
+                                        AsyncSnapshot<bool>
+                                            transactionSnapshot) {
+                                      if (transactionSnapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Container();
+                                      } else if (transactionSnapshot.hasError) {
+                                        return Center(
+                                            child: Text(
+                                                'Error: ${transactionSnapshot.error}'));
+                                      } else if (transactionSnapshot.hasData) {
+                                        final bool isExpense =
+                                            transactionSnapshot.data!;
+                                        String transactionType =
+                                            !isExpense ? 'expense' : 'income';
+                                        return TransactionItem(
+                                          transaction: transaction,
+                                          transactionType: transactionType,
+                                        );
+                                      } else {
+                                        return const Center(
+                                            child: Text(
+                                                'No transaction data available'));
+                                      }
+                                    },
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -139,12 +260,42 @@ class _HomePageState extends State<HomePage> {
                                     color: Colors.grey,
                                   ),
                         ),
-                        Text(
-                          '3.000,00 €',
-                          style:
-                              Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        FutureBuilder<List<Transactions>>(
+                          future: showUsersIncomes(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: SizedBox(
+                                  width: 10.0,
+                                  height: 10.0,
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              return const Center(child: Text('......'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const Center(child: Text('......'));
+                            } else {
+                              double totalIncome = 0;
+                              final incomes = snapshot.data;
+
+                              for (var income in incomes!) {
+                                totalIncome += income.amount;
+                              }
+                              return Text(
+                                '+${totalIncome.toStringAsFixed(2)} €',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                              );
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -159,13 +310,42 @@ class _HomePageState extends State<HomePage> {
                                     color: Colors.grey,
                                   ),
                         ),
-                        Text(
-                          '-1.534,29 €',
-                          style:
-                              Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red,
-                                  ),
+                        FutureBuilder<List<Transactions>>(
+                          future: showUsersExpenses(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: SizedBox(
+                                  width: 10.0,
+                                  height: 10.0,
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              return const Center(child: Text('......'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const Center(child: Text('......'));
+                            } else {
+                              double totalExpense = 0;
+                              final expenses = snapshot.data;
+
+                              for (var expense in expenses!) {
+                                totalExpense += expense.amount;
+                              }
+                              return Text(
+                                '-${totalExpense.toStringAsFixed(2)} €',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red,
+                                    ),
+                              );
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -178,16 +358,42 @@ class _HomePageState extends State<HomePage> {
                           style:
                               Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Colors.grey,
-                                    fontWeight: FontWeight.bold,
                                   ),
                         ),
-                        Text(
-                          '+1.465,71 €',
-                          style:
-                              Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
+                        FutureBuilder<double>(
+                          future: showSavingRate(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: SizedBox(
+                                  width: 10.0,
+                                  height: 10.0,
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            } else if (snapshot.hasError) {
+                              return const Center(child: Text('......'));
+                            } else if (!snapshot.hasData) {
+                              return const Center(child: Text('......'));
+                            } else {
+                              final savingRate = snapshot.data!;
+                              return Text(
+                                (savingRate < 0)
+                                    ? '${savingRate.toStringAsFixed(2)} €'
+                                    : '+${savingRate.toStringAsFixed(2)} €',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium!
+                                    .copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: (savingRate < 0)
+                                          ? Colors.red
+                                          : Colors.green,
+                                    ),
+                              );
+                            }
+                          },
                         ),
                       ],
                     ),

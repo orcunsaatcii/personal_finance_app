@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_finance_app/constants/constants.dart';
 import 'package:personal_finance_app/models/user_dao.dart';
 import 'package:personal_finance_app/pages/auth/signup/signuppage.dart';
 import 'package:personal_finance_app/pages/home/page/homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _AuthPageState();
+  ConsumerState<LoginPage> createState() => _AuthPageState();
 }
 
-class _AuthPageState extends State<LoginPage> {
+class _AuthPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool obscureTextCheck = true;
   String email = '';
@@ -21,13 +22,14 @@ class _AuthPageState extends State<LoginPage> {
   Future<void> login() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      final sp = await SharedPreferences.getInstance();
 
       try {
         final isUserExists = await UsersDao().userExists(email, password);
-        await sp.setString('email', email);
         if (mounted) {
           if (isUserExists) {
+            final sp = await SharedPreferences.getInstance();
+            sp.setString('email', email);
+            sp.setString('password', password);
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
