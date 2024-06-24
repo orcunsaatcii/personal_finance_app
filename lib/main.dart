@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
-import 'package:personal_finance_app/pages/home/page/homepage.dart';
+import 'package:personal_finance_app/pages/home/page/page_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -41,7 +41,7 @@ class _MyAppState extends State<MyApp> {
           // Once the future completes, show the appropriate page
           else {
             if (snapshot.data == true) {
-              return const HomePage();
+              return const PageManager();
             } else {
               return const LoginPage();
             }

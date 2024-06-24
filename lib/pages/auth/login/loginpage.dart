@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_finance_app/constants/constants.dart';
 import 'package:personal_finance_app/models/user_dao.dart';
 import 'package:personal_finance_app/pages/auth/signup/signuppage.dart';
-import 'package:personal_finance_app/pages/home/page/homepage.dart';
+import 'package:personal_finance_app/pages/home/page/page_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -33,7 +33,7 @@ class _AuthPageState extends ConsumerState<LoginPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => const HomePage(),
+                builder: (context) => const PageManager(),
               ),
             );
           } else {

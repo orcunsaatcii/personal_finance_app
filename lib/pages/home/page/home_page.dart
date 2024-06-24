@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_finance_app/constants/constants.dart';
 import 'package:personal_finance_app/models/category_dao.dart';
 import 'package:personal_finance_app/models/transaction_dao.dart';
@@ -9,14 +8,14 @@ import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
 import 'package:personal_finance_app/pages/home/widgets/transaction_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  ConsumerState<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
+class _HomePageState extends State<HomePage> {
   Future<void> logout() async {
     if (mounted) {
       final sp = await SharedPreferences.getInstance();
