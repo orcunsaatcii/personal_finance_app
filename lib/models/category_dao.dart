@@ -1,4 +1,5 @@
 import 'package:personal_finance_app/models/category.dart';
+import 'package:personal_finance_app/models/transactions.dart';
 import 'package:personal_finance_app/services/database/database_helper.dart';
 
 class CategoryDao {
@@ -33,5 +34,18 @@ class CategoryDao {
 
     await db.delete('categories',
         where: 'category_id = ?', whereArgs: [categoryId]);
+  }
+
+  Future<bool> isExpenseOrIncome(int categoryId) async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> category = await db.rawQuery(
+        'SELECT * from categories WHERE category_id = ?', [categoryId]);
+
+    if (category[0]['type'] == 'income') {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

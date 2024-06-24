@@ -60,4 +60,25 @@ class UsersDao {
       return true;
     }
   }
+
+  Future<Map<String, dynamic>> getLoggedInUser(
+      String email, String password) async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> user = await db.rawQuery(
+        'SELECT * FROM users WHERE email = ? and password = ?',
+        [email, password]);
+
+    return user[0];
+  }
+
+  Future<Map<String, dynamic>> searchUser(String email, String password) async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> user = await db.rawQuery(
+        'SELECT * from users WHERE email = ? and password = ?',
+        [email, password]);
+
+    return user[0];
+  }
 }
