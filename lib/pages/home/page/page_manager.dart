@@ -22,31 +22,36 @@ class _PageManagerState extends ConsumerState<PageManager> {
   @override
   Widget build(BuildContext context) {
     int currentIndex = ref.watch(bottomNavbarProvider);
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: _pages.elementAt(currentIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        iconSize: 30,
-        selectedItemColor: const Color.fromARGB(255, 1, 10, 70),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.pie_chart),
-            label: 'Stat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        onTap: (value) {
-          ref.read(bottomNavbarProvider.notifier).changePage(value);
-        },
+      bottomNavigationBar: SizedBox(
+        height: screenHeight * 0.08,
+        child: BottomNavigationBar(
+          selectedFontSize: 15,
+          currentIndex: currentIndex,
+          iconSize: 30,
+          selectedItemColor: const Color.fromARGB(255, 1, 10, 70),
+          unselectedItemColor: Colors.grey,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.pie_chart),
+              label: 'Stat',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+          onTap: (value) {
+            ref.read(bottomNavbarProvider.notifier).changePage(value);
+          },
+        ),
       ),
     );
   }

@@ -39,6 +39,8 @@ dependencies:
   sqflite: ^2.3.3+1
   shared_preferences: ^2.2.3
   flutter_riverpod: ^2.5.1
+  fl_chart: ^0.68.0
+  d_chart: ^2.6.9
 
 dev_dependencies:
   flutter_test:

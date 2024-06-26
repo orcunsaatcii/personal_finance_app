@@ -35,12 +35,15 @@ class _TransactionItemState extends State<TransactionItem> {
                     : Colors.green,
               ),
               sizedBoxWidth(10),
-              Text(
-                widget.transaction.description,
-                style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 19,
-                    ),
+              Expanded(
+                child: Text(
+                  widget.transaction.description,
+                  maxLines: 2,
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 19,
+                      ),
+                ),
               ),
               const Spacer(),
               Column(
