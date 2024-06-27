@@ -4,6 +4,7 @@ import 'package:personal_finance_app/models/category_dao.dart';
 import 'package:personal_finance_app/models/transaction_dao.dart';
 import 'package:personal_finance_app/models/transactions.dart';
 import 'package:personal_finance_app/models/user_dao.dart';
+import 'package:personal_finance_app/pages/add/page/add_transaction_page.dart';
 import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
 import 'package:personal_finance_app/pages/home/widgets/transaction_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -235,7 +236,15 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const Spacer(),
                         IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const AddTransactionPage(),
+                              ),
+                            );
+                          },
                           icon: const Icon(
                             Icons.add,
                             color: Colors.black,

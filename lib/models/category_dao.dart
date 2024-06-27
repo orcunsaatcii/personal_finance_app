@@ -13,7 +13,7 @@ class CategoryDao {
       var data = allData[index];
 
       return Category(
-          categoryId: data['categoryId'],
+          categoryId: data['category_id'],
           name: data['name'],
           type: data['type']);
     });
