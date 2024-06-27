@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:personal_finance_app/constants/constants.dart';
+import 'package:personal_finance_app/models/category.dart';
+import 'package:personal_finance_app/providers/category_provider.dart';
 import 'package:personal_finance_app/providers/new_transaction_provider.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
@@ -11,11 +14,33 @@ class AddTransactionPage extends ConsumerStatefulWidget {
 }
 
 class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
+  Category? _selectedCategory;
+  DateTime? _selectedDate;
+
+  Future<void> selectDate() async {
+    final lastDate = DateTime.now();
+    final firstDate = DateTime.utc(DateTime.now().year - 1);
+    DateTime? date = await showDatePicker(
+      context: context,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (date == null) {
+      return;
+    }
+
+    setState(() {
+      _selectedDate = date;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     bool newTransactionType = ref.watch(newTransactionTypeProvider);
+    final categoriesAsyncValue = ref.watch(categoriesProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Transaction'),
@@ -146,6 +171,147 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
             Text(
               'Category',
               style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            sizedBoxHeight(20),
+            categoriesAsyncValue.when(
+              data: (categories) {
+                return Container(
+                  height: screenHeight * 0.10,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 48, 48, 78),
+                        Color.fromARGB(255, 92, 92, 116),
+                      ],
+                      begin: Alignment.bottomRight,
+                      end: Alignment.topLeft,
+                    ),
+                  ),
+                  child: Center(
+                    child: DropdownButton<Category>(
+                      underline: const SizedBox.shrink(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 50.0, vertical: 5.0),
+                      iconSize: 40,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.white,
+                      ),
+                      menuMaxHeight: 300,
+                      isExpanded: true,
+                      value: _selectedCategory,
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            color: Colors.white,
+                          ),
+                      dropdownColor: const Color.fromARGB(255, 48, 48, 78),
+                      hint: Center(
+                        child: Text(
+                          'Select Category',
+                          style:
+                              Theme.of(context).textTheme.titleLarge!.copyWith(
+                                    color: Colors.white,
+                                  ),
+                        ),
+                      ),
+                      items: categories
+                          .map<DropdownMenuItem<Category>>((Category category) {
+                        return DropdownMenuItem<Category>(
+                          value: category,
+                          child: Center(
+                            child: Text(category.name),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (Category? newValue) {
+                        setState(() {
+                          _selectedCategory = newValue;
+                        });
+                      },
+                    ),
+                  ),
+                );
+              },
+              loading: () => const CircularProgressIndicator(),
+              error: (err, stack) => Text('Error: $err'),
+            ),
+            sizedBoxHeight(10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Container(
+                    height: screenHeight * 0.10,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 48, 48, 78),
+                          Color.fromARGB(255, 92, 92, 116),
+                        ],
+                        begin: Alignment.bottomRight,
+                        end: Alignment.topLeft,
+                      ),
+                    ),
+                    child: Center(
+                      child: _selectedDate == null
+                          ? Text(
+                              'Select Date',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge!
+                                  .copyWith(
+                                    color: Colors.white,
+                                  ),
+                            )
+                          : Text(
+                              DateFormat.yMd()
+                                  .format(_selectedDate!)
+                                  .toString(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge!
+                                  .copyWith(
+                                    color: Colors.white,
+                                  ),
+                            ),
+                    ),
+                  ),
+                ),
+                sizedBoxWidth(10),
+                InkWell(
+                  onTap: selectDate,
+                  child: Container(
+                    height: screenHeight * 0.10,
+                    width: screenHeight * 0.10,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 48, 48, 78),
+                          Color.fromARGB(255, 92, 92, 116),
+                        ],
+                        begin: Alignment.bottomRight,
+                        end: Alignment.topLeft,
+                      ),
+                    ),
+                    child: Center(
+                      child: _selectedDate == null
+                          ? const Icon(
+                              Icons.calendar_month_outlined,
+                              color: Colors.white,
+                              size: 40,
+                            )
+                          : const Icon(
+                              Icons.restart_alt,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
