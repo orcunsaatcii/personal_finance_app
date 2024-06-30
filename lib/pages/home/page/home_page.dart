@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_finance_app/constants/constants.dart';
-import 'package:personal_finance_app/models/category_dao.dart';
-import 'package:personal_finance_app/models/transaction_dao.dart';
-import 'package:personal_finance_app/models/transactions.dart';
-import 'package:personal_finance_app/models/user_dao.dart';
+import 'package:personal_finance_app/models/category/category_dao.dart';
+import 'package:personal_finance_app/models/transaction/transaction_dao.dart';
+import 'package:personal_finance_app/models/transaction/transactions.dart';
+import 'package:personal_finance_app/models/user/user_dao.dart';
 import 'package:personal_finance_app/pages/add/page/add_transaction_page.dart';
 import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
 import 'package:personal_finance_app/pages/home/widgets/transaction_item.dart';
+import 'package:personal_finance_app/providers/transactions_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   Future<void> logout() async {
     if (mounted) {
       final sp = await SharedPreferences.getInstance();
@@ -79,6 +81,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final transactionsAsyncValue = ref.watch(transactionsProvider);
 
     return Scaffold(
       body: Stack(
@@ -146,7 +149,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Expanded(
                         child: FutureBuilder<List<Transactions>>(
-                          future: showTransactions(),
+                          future: transactionsAsyncValue,
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -158,44 +161,42 @@ class _HomePageState extends State<HomePage> {
                                 snapshot.data!.isEmpty) {
                               return const Center(
                                   child: Text('No transactions found'));
-                            } else {
-                              return ListView.builder(
-                                itemCount: snapshot.data!.length,
-                                itemBuilder: (context, index) {
-                                  final transaction = snapshot.data![index];
-
-                                  return FutureBuilder<bool>(
-                                    future: CategoryDao().isExpenseOrIncome(
-                                        transaction.categoryId),
-                                    builder: (context,
-                                        AsyncSnapshot<bool>
-                                            transactionSnapshot) {
-                                      if (transactionSnapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return Container();
-                                      } else if (transactionSnapshot.hasError) {
-                                        return Center(
-                                            child: Text(
-                                                'Error: ${transactionSnapshot.error}'));
-                                      } else if (transactionSnapshot.hasData) {
-                                        final bool isExpense =
-                                            transactionSnapshot.data!;
-                                        String transactionType =
-                                            !isExpense ? 'expense' : 'income';
-                                        return TransactionItem(
-                                          transaction: transaction,
-                                          transactionType: transactionType,
-                                        );
-                                      } else {
-                                        return const Center(
-                                            child: Text(
-                                                'No transaction data available'));
-                                      }
-                                    },
-                                  );
-                                },
-                              );
                             }
+                            return ListView.builder(
+                              itemCount: snapshot.data!.length,
+                              itemBuilder: (context, index) {
+                                final transaction = snapshot.data![index];
+
+                                return FutureBuilder<bool>(
+                                  future: CategoryDao().isExpenseOrIncome(
+                                      transaction.categoryId),
+                                  builder: (context,
+                                      AsyncSnapshot<bool> transactionSnapshot) {
+                                    if (transactionSnapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Container();
+                                    } else if (transactionSnapshot.hasError) {
+                                      return Center(
+                                          child: Text(
+                                              'Error: ${transactionSnapshot.error}'));
+                                    } else if (transactionSnapshot.hasData) {
+                                      final bool isExpense =
+                                          transactionSnapshot.data!;
+                                      String transactionType =
+                                          !isExpense ? 'expense' : 'income';
+                                      return TransactionItem(
+                                        transaction: transaction,
+                                        transactionType: transactionType,
+                                      );
+                                    } else {
+                                      return const Center(
+                                          child: Text(
+                                              'No transaction data available'));
+                                    }
+                                  },
+                                );
+                              },
+                            );
                           },
                         ),
                       ),

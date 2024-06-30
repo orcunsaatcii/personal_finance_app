@@ -1,4 +1,4 @@
-import 'package:personal_finance_app/models/transactions.dart';
+import 'package:personal_finance_app/models/transaction/transactions.dart';
 import 'package:personal_finance_app/services/database/database_helper.dart';
 
 class TransactionsDao {
@@ -27,8 +27,8 @@ class TransactionsDao {
     final db = await DatabaseHelper.initDb();
 
     var data = <String, dynamic>{};
-    data['userId'] = userId;
-    data['categoryId'] = categoryId;
+    data['user_id'] = userId;
+    data['category_id'] = categoryId;
     data['amount'] = amount;
     data['date'] = date;
     data['description'] = description;

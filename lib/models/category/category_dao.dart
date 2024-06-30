@@ -1,5 +1,4 @@
-import 'package:personal_finance_app/models/category.dart';
-import 'package:personal_finance_app/models/transactions.dart';
+import 'package:personal_finance_app/models/category/category.dart';
 import 'package:personal_finance_app/services/database/database_helper.dart';
 
 class CategoryDao {
@@ -8,6 +7,38 @@ class CategoryDao {
 
     List<Map<String, dynamic>> allData =
         await db.rawQuery('SELECT * FROM categories');
+
+    return List.generate(allData.length, (index) {
+      var data = allData[index];
+
+      return Category(
+          categoryId: data['category_id'],
+          name: data['name'],
+          type: data['type']);
+    });
+  }
+
+  Future<List<Category>> incomeCategories() async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> allData = await db
+        .rawQuery('SELECT * FROM categories WHERE type = ?', ['income']);
+
+    return List.generate(allData.length, (index) {
+      var data = allData[index];
+
+      return Category(
+          categoryId: data['category_id'],
+          name: data['name'],
+          type: data['type']);
+    });
+  }
+
+  Future<List<Category>> expenseCategories() async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> allData = await db
+        .rawQuery('SELECT * FROM categories WHERE type = ?', ['expense']);
 
     return List.generate(allData.length, (index) {
       var data = allData[index];
@@ -47,5 +78,14 @@ class CategoryDao {
     } else {
       return false;
     }
+  }
+
+  Future<Map<String, dynamic>> searchCategory(String name, String type) async {
+    final db = await DatabaseHelper.initDb();
+
+    List<Map<String, dynamic>> category = await db.rawQuery(
+        'SELECT * FROM categories WHERE name = ? and type = ?', [name, type]);
+
+    return category[0];
   }
 }

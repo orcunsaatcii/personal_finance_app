@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:personal_finance_app/constants/constants.dart';
-import 'package:personal_finance_app/models/transactions.dart';
+import 'package:personal_finance_app/models/transaction/transactions.dart';
 
 class TransactionItem extends StatefulWidget {
   const TransactionItem(

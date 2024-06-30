@@ -2,9 +2,9 @@ import 'package:d_chart/d_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:personal_finance_app/constants/constants.dart';
-import 'package:personal_finance_app/models/transaction_dao.dart';
-import 'package:personal_finance_app/models/transactions.dart';
-import 'package:personal_finance_app/models/user_dao.dart';
+import 'package:personal_finance_app/models/transaction/transaction_dao.dart';
+import 'package:personal_finance_app/models/transaction/transactions.dart';
+import 'package:personal_finance_app/models/user/user_dao.dart';
 import 'package:personal_finance_app/providers/statistic_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,4 +1,4 @@
-import 'package:personal_finance_app/models/users.dart';
+import 'package:personal_finance_app/models/user/users.dart';
 import 'package:personal_finance_app/services/database/database_helper.dart';
 
 class UsersDao {

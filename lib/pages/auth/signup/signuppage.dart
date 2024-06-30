@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:personal_finance_app/constants/constants.dart';
-import 'package:personal_finance_app/models/user_dao.dart';
+import 'package:personal_finance_app/models/user/user_dao.dart';
 import 'package:personal_finance_app/pages/auth/login/loginpage.dart';
 
 class SignupPage extends StatefulWidget {

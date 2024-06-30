@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_finance_app/constants/constants.dart';
-import 'package:personal_finance_app/models/category.dart';
+import 'package:personal_finance_app/models/category/category.dart';
+import 'package:personal_finance_app/models/category/category_dao.dart';
+import 'package:personal_finance_app/models/transaction/transaction_dao.dart';
+import 'package:personal_finance_app/models/user/user_dao.dart';
 import 'package:personal_finance_app/providers/category_provider.dart';
 import 'package:personal_finance_app/providers/new_transaction_provider.dart';
+import 'package:personal_finance_app/providers/transactions_provider.dart';
+import 'package:personal_finance_app/services/database/database_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 
 class AddTransactionPage extends ConsumerStatefulWidget {
   const AddTransactionPage({super.key});
@@ -37,14 +44,78 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     });
   }
 
-  
+  Future<void> saveNewTransaction() async {
+    final sp = await SharedPreferences.getInstance();
+    final user = await UsersDao()
+        .getLoggedInUser(sp.getString('email')!, sp.getString('password')!);
+
+    if (mounted) {
+      if (_selectedCategory == null ||
+          _selectedDate == null ||
+          _amountController.text.isEmpty ||
+          _descriptionController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Please fill the all blank fields.',
+            ),
+          ),
+        );
+      } else {
+        if (double.tryParse(_amountController.text) == null ||
+            double.tryParse(_amountController.text)! <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Please enter a valid amount.',
+              ),
+            ),
+          );
+        } else {
+          final category = await CategoryDao().searchCategory(
+            _selectedCategory!.name.toString(),
+            _selectedCategory!.type.toString(),
+          );
+          final double enteredAmount = double.tryParse(_amountController.text)!;
+          final int year = _selectedDate!.year;
+          final int month = _selectedDate!.month;
+          final int day = _selectedDate!.day;
+          final String enteredDate = '$year-$month-$day';
+
+          try {
+            await ref.read(transactionsProvider.notifier).saveNewTransaction(
+                  user['user_id'],
+                  category['category_id'],
+                  enteredAmount,
+                  enteredDate,
+                  _descriptionController.text,
+                );
+
+            Navigator.pop(context);
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          }
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     bool newTransactionType = ref.watch(newTransactionTypeProvider);
-    final categoriesAsyncValue = ref.watch(categoriesProvider);
+
+    final categoriesAsyncValue = newTransactionType
+        ? ref.watch(incomeCategoriesProvider)
+        : ref.watch(expenseCategoriesProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Transaction'),
@@ -87,6 +158,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                             ref
                                 .read(newTransactionTypeProvider.notifier)
                                 .toggleTransactionType(true);
+
+                            setState(() {
+                              _selectedCategory = null;
+                            });
                           },
                           child: Container(
                             height: screenHeight * 0.08,
@@ -134,6 +209,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                             ref
                                 .read(newTransactionTypeProvider.notifier)
                                 .toggleTransactionType(false);
+
+                            setState(() {
+                              _selectedCategory = null;
+                            });
                           },
                           child: Container(
                             height: screenHeight * 0.08,
@@ -436,25 +515,28 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                 ),
               ),
               sizedBoxHeight(20),
-              Container(
-                height: screenHeight * 0.07,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 0, 200, 255),
-                      Color.fromARGB(255, 6, 88, 155),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
+              InkWell(
+                onTap: saveNewTransaction,
+                child: Container(
+                  height: screenHeight * 0.07,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 0, 200, 255),
+                        Color.fromARGB(255, 6, 88, 155),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: Text(
-                    'Save',
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: Colors.white,
-                        ),
+                  child: Center(
+                    child: Text(
+                      'Save',
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            color: Colors.white,
+                          ),
+                    ),
                   ),
                 ),
               ),
