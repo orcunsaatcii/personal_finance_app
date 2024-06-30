@@ -32,14 +32,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  Future<List<Transactions>> showTransactions() async {
-    final sp = await SharedPreferences.getInstance();
-    final user = await UsersDao()
-        .searchUser(sp.getString('email')!, sp.getString('password')!);
-
-    return await TransactionsDao().allTransactions(user['user_id']);
-  }
-
   Future<List<Transactions>> showUsersExpenses() async {
     final sp = await SharedPreferences.getInstance();
 
